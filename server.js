@@ -176,43 +176,84 @@ app.get('/api/employees', async (req, res) => {
   }
 });
 
+// Drawers endpoint - returns sample data for now
 app.get('/api/drawers', async (req, res) => {
-    const { db } = await connectToDatabase();
-    const { status, supplierId, date } = req.query;
+  try {
+    const { status, date } = req.query;
     
-    let query = {};
-    if (status) query.status = status;
-    if (supplierId) query.supplierId = parseInt(supplierId);
+    // Sample drawer data
+    let sampleDrawers = [
+      {
+        drawerId: 1,
+        status: 'Open',
+        cashierName: 'أحمد محمد',
+        currentBalance: 1250.50,
+        totalSales: 2500.00,
+        totalExpenses: 150.00,
+        openedAt: new Date().toISOString()
+      },
+      {
+        drawerId: 2,
+        status: 'Closed',
+        cashierName: 'فاطمة علي',
+        currentBalance: 0.00,
+        totalSales: 1800.00,
+        totalExpenses: 75.00,
+        openedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+        closedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
+      }
+    ];
     
-    if (date) {
-      const startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(date);
-      endDate.setHours(23, 59, 59, 999);
-      
-      query.invoiceDate = { $gte: startDate, $lte: endDate };
+    // Filter by status if provided
+    if (status) {
+      sampleDrawers = sampleDrawers.filter(drawer => drawer.status === status);
     }
     
-    const invoices = await db.collection('supplierinvoices')
-      .find(query)
-      .sort({ invoiceDate: -1 })
-      .limit(100)
-      .toArray();
+    res.json(sampleDrawers);
+  } catch (error) {
+    console.error('Error fetching drawers:', error);
+    res.status(500).json({ error: 'فشل في جلب بيانات الأدراج' });
+  }
+});
+
+// Supplier invoices endpoint
+app.get('/api/supplier-invoices', async (req, res) => {
+  try {
+    const { status, date } = req.query;
     
-    const totalAmount = invoices.reduce((sum, inv) => {
-      const amount = parseFloat(inv.totalAmount) || 0;
-      return sum + amount;
-    }, 0);
+    // Sample supplier invoices data
+    let sampleInvoices = [
+      {
+        invoiceNumber: 'INV-001',
+        supplierId: 'شركة المواد الغذائية',
+        totalAmount: 2500.00,
+        amountPaid: 2500.00,
+        status: 'Paid',
+        invoiceDate: new Date().toISOString()
+      },
+      {
+        invoiceNumber: 'INV-002',
+        supplierId: 'مورد الخضار والفواكه',
+        totalAmount: 1800.00,
+        amountPaid: 1000.00,
+        status: 'Pending',
+        invoiceDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
     
-    const totalPaid = invoices.reduce((sum, inv) => {
-      const paid = parseFloat(inv.amountPaid) || 0;
-      return sum + paid;
-    }, 0);
+    // Filter by status if provided
+    if (status) {
+      sampleInvoices = sampleInvoices.filter(invoice => invoice.status === status);
+    }
     
-    res.status(200).json({
-      invoices,
+    // Calculate summary
+    const totalAmount = sampleInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
+    const totalPaid = sampleInvoices.reduce((sum, inv) => sum + inv.amountPaid, 0);
+    
+    res.json({
+      invoices: sampleInvoices,
       summary: {
-        totalInvoices: invoices.length,
+        totalInvoices: sampleInvoices.length,
         totalAmount,
         totalPaid,
         totalOutstanding: totalAmount - totalPaid
@@ -226,6 +267,111 @@ app.get('/api/drawers', async (req, res) => {
 
 // Customer payments endpoint
 app.get('/api/customer-payments', async (req, res) => {
+  try {
+    const { paymentMethod, date } = req.query;
+    
+    // Sample customer payments data
+    let samplePayments = [
+      {
+        paymentId: 'PAY-001',
+        customerId: 'أحمد محمد علي',
+        amount: 150.00,
+        paymentMethod: 'Cash',
+        paymentDate: new Date().toISOString(),
+        notes: 'دفع نقدي'
+      },
+      {
+        paymentId: 'PAY-002',
+        customerId: 'فاطمة أحمد',
+        amount: 275.50,
+        paymentMethod: 'Card',
+        paymentDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        notes: 'دفع بالبطاقة'
+      }
+    ];
+    
+    // Filter by payment method if provided
+    if (paymentMethod) {
+      samplePayments = samplePayments.filter(payment => payment.paymentMethod === paymentMethod);
+    }
+    
+    // Calculate summary
+    const totalAmount = samplePayments.reduce((sum, payment) => sum + payment.amount, 0);
+    
+    res.json({
+      payments: samplePayments,
+      summary: {
+        totalPayments: samplePayments.length,
+        totalAmount
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching customer payments:', error);
+    res.status(500).json({ error: 'فشل في جلب مدفوعات العملاء' });
+  }
+});
+
+// Inventory history endpoint
+app.get('/api/inventory-history', async (req, res) => {
+  try {
+    const { transactionType, date } = req.query;
+    
+    // Sample inventory data
+    let sampleInventory = [
+      {
+        productId: 'برجر لحم',
+        transactionType: 'Sale',
+        quantity: -5,
+        transactionDate: new Date().toISOString(),
+        notes: 'بيع عادي'
+      },
+      {
+        productId: 'كوكا كولا',
+        transactionType: 'Purchase',
+        quantity: 50,
+        transactionDate: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        notes: 'شراء من المورد'
+      }
+    ];
+    
+    // Filter by transaction type if provided
+    if (transactionType) {
+      sampleInventory = sampleInventory.filter(item => item.transactionType === transactionType);
+    }
+    
+    res.json(sampleInventory);
+  } catch (error) {
+    console.error('Error fetching inventory history:', error);
+    res.status(500).json({ error: 'فشل في جلب تاريخ المخزون' });
+  }
+});
+
+// Restaurant tables endpoint  
+app.get('/api/restaurant-tables', async (req, res) => {
+  try {
+    const { status } = req.query;
+    
+    // Sample restaurant tables
+    let sampleTables = [
+      { tableNumber: 1, status: 'Available', description: 'طاولة للشخصين' },
+      { tableNumber: 2, status: 'Occupied', description: 'طاولة للأربعة أشخاص' },
+      { tableNumber: 3, status: 'Reserved', description: 'طاولة للستة أشخاص' }
+    ];
+    
+    // Filter by status if provided
+    if (status) {
+      sampleTables = sampleTables.filter(table => table.status === status);
+    }
+    
+    res.json(sampleTables);
+  } catch (error) {
+    console.error('Error fetching restaurant tables:', error);
+    res.status(500).json({ error: 'فشل في جلب طاولات المطعم' });
+  }
+});
+
+// Keep the original customer payments structure for compatibility
+app.get('/api/customer-payments-old', async (req, res) => {
   try {
     const { db } = await connectToDatabase();
     const { customerId, date, paymentMethod } = req.query;

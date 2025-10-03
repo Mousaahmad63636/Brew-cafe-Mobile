@@ -418,71 +418,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Drawers data loading - with sample data for now
+    // Drawers data loading - now uses API
     async function loadDrawersData(date, status = '') {
-        const container = document.getElementById('drawers-container');
-        
-        if (container) {
-            // Sample drawer data for demonstration
-            const sampleDrawers = [
-                {
-                    drawerId: 1,
-                    status: 'Open',
-                    cashierName: 'أحمد محمد',
-                    currentBalance: 1250.50,
-                    totalSales: 2500.00,
-                    totalExpenses: 150.00,
-                    openedAt: new Date().toISOString()
-                },
-                {
-                    drawerId: 2,
-                    status: 'Closed',
-                    cashierName: 'فاطمة علي',
-                    currentBalance: 0.00,
-                    totalSales: 1800.00,
-                    totalExpenses: 75.00,
-                    openedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-                    closedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
-                },
-                {
-                    drawerId: 3,
-                    status: 'Open',
-                    cashierName: 'محمد أحمد',
-                    currentBalance: 950.25,
-                    totalSales: 1950.00,
-                    totalExpenses: 100.00,
-                    openedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+        try {
+            let url = `${API_BASE_URL}/api/drawers?date=${date}`;
+            if (status) url += `&status=${status}`;
+            
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch drawers data');
+            
+            const drawers = await response.json();
+            const container = document.getElementById('drawers-container');
+            
+            if (container) {
+                if (drawers.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-data-message">
+                            <i class="fas fa-cash-register"></i>
+                            <h3>لا توجد أدراج</h3>
+                            <p>لا توجد بيانات أدراج متاحة للفلتر المحدد</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = drawers.map(drawer => `
+                        <div class="drawer-card">
+                            <div class="card-header">
+                                <span>درج #${drawer.drawerId}</span>
+                                <span class="status-badge status-${drawer.status.toLowerCase()}">${drawer.status}</span>
+                            </div>
+                            <div class="card-body">
+                                <div><strong>الكاشير:</strong> ${drawer.cashierName}</div>
+                                <div><strong>الرصيد الحالي:</strong> <span class="amount">$${drawer.currentBalance.toFixed(2)}</span></div>
+                                <div><strong>المبيعات:</strong> <span class="amount">$${drawer.totalSales.toFixed(2)}</span></div>
+                                <div><strong>المصروفات:</strong> <span class="amount negative">$${drawer.totalExpenses.toFixed(2)}</span></div>
+                                <div><strong>فتح في:</strong> <span class="date-time">${new Date(drawer.openedAt).toLocaleString('ar-EG')}</span></div>
+                                ${drawer.closedAt ? `<div><strong>أغلق في:</strong> <span class="date-time">${new Date(drawer.closedAt).toLocaleString('ar-EG')}</span></div>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
                 }
-            ];
-            
-            // Filter by status if provided
-            const filteredDrawers = status ? sampleDrawers.filter(d => d.status === status) : sampleDrawers;
-            
-            if (filteredDrawers.length === 0) {
+            }
+        } catch (error) {
+            console.error('Error loading drawers data:', error);
+            const container = document.getElementById('drawers-container');
+            if (container) {
                 container.innerHTML = `
-                    <div class="no-data-message">
-                        <i class="fas fa-cash-register"></i>
-                        <h3>لا توجد أدراج</h3>
-                        <p>لا توجد بيانات أدراج متاحة للفلتر المحدد</p>
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>خطأ في تحميل البيانات</h3>
+                        <p>فشل في جلب بيانات الأدراج</p>
                     </div>
                 `;
-            } else {
-                container.innerHTML = filteredDrawers.map(drawer => `
-                    <div class="drawer-card">
-                        <div class="card-header">
-                            <span>درج #${drawer.drawerId}</span>
-                            <span class="status-badge status-${drawer.status.toLowerCase()}">${drawer.status}</span>
-                        </div>
-                        <div class="card-body">
-                            <div><strong>الكاشير:</strong> ${drawer.cashierName}</div>
-                            <div><strong>الرصيد الحالي:</strong> <span class="amount">$${drawer.currentBalance.toFixed(2)}</span></div>
-                            <div><strong>المبيعات:</strong> <span class="amount">$${drawer.totalSales.toFixed(2)}</span></div>
-                            <div><strong>المصروفات:</strong> <span class="amount negative">$${drawer.totalExpenses.toFixed(2)}</span></div>
-                            <div><strong>فتح في:</strong> <span class="date-time">${new Date(drawer.openedAt).toLocaleString('ar-EG')}</span></div>
-                            ${drawer.closedAt ? `<div><strong>أغلق في:</strong> <span class="date-time">${new Date(drawer.closedAt).toLocaleString('ar-EG')}</span></div>` : ''}
-                        </div>
-                    </div>
-                `).join('');
             }
         }
     }
