@@ -399,6 +399,8 @@ app.get('/api/transaction-details/:transactionId', async (req, res) => {
 // Dashboard summary endpoint
 app.get('/api/dashboard-summary', async (req, res) => {
   try {
+    console.log('Dashboard summary requested with date:', req.query.date);
+    
     const { date } = req.query;
     
     let startDate, endDate;
@@ -414,70 +416,152 @@ app.get('/api/dashboard-summary', async (req, res) => {
       endDate.setHours(23, 59, 59, 999);
     }
     
-    // Get sales data
-    const salesQuery = {
-      transactionDate: { $gte: startDate, $lte: endDate },
-      transactionType: "Sale"
-    };
+    console.log('Date range:', { startDate, endDate });
     
-    const transactions = await db.collection('transactions').find(salesQuery).toArray();
-    const totalSales = transactions.reduce((sum, tx) => sum + (parseFloat(tx.totalAmount) || 0), 0);
+    // Initialize default values
+    let totalSales = 0;
+    let transactionCount = 0;
+    let totalExpenses = 0;
+    let expenseCount = 0;
+    let openDrawers = 0;
+    let pendingInvoices = 0;
+    let totalCustomerPayments = 0;
+    let paymentCount = 0;
+    let availableTables = 0;
     
-    // Get expenses
-    const expenses = await db.collection('expenses')
-      .find({
-        $or: [
-          { date: { $gte: startDate, $lte: endDate } },
-          { createdAt: { $gte: startDate, $lte: endDate } }
-        ]
-      })
-      .toArray();
-    const totalExpenses = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+    try {
+      // Get sales data - try multiple possible collection names
+      const possibleTransactionCollections = ['Transactions', 'transactions', 'Transaction'];
+      let transactions = [];
+      
+      for (const collectionName of possibleTransactionCollections) {
+        try {
+          const collections = await db.listCollections({ name: collectionName }).toArray();
+          if (collections.length > 0) {
+            console.log(`Found transactions collection: ${collectionName}`);
+            const salesQuery = {
+              transactionDate: { $gte: startDate, $lte: endDate }
+            };
+            transactions = await db.collection(collectionName).find(salesQuery).toArray();
+            console.log(`Found ${transactions.length} transactions`);
+            break;
+          }
+        } catch (err) {
+          console.log(`Collection ${collectionName} not found or error:`, err.message);
+        }
+      }
+      
+      totalSales = transactions.reduce((sum, tx) => sum + (parseFloat(tx.totalAmount) || 0), 0);
+      transactionCount = transactions.length;
+      
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    }
     
-    // Get drawer status
-    const openDrawers = await db.collection('drawers').countDocuments({ status: 'Open' });
+    try {
+      // Get expenses
+      const possibleExpenseCollections = ['Expenses', 'expenses', 'Expense'];
+      let expenses = [];
+      
+      for (const collectionName of possibleExpenseCollections) {
+        try {
+          const collections = await db.listCollections({ name: collectionName }).toArray();
+          if (collections.length > 0) {
+            console.log(`Found expenses collection: ${collectionName}`);
+            expenses = await db.collection(collectionName)
+              .find({
+                $or: [
+                  { date: { $gte: startDate, $lte: endDate } },
+                  { createdAt: { $gte: startDate, $lte: endDate } },
+                  { expenseDate: { $gte: startDate, $lte: endDate } }
+                ]
+              })
+              .toArray();
+            console.log(`Found ${expenses.length} expenses`);
+            break;
+          }
+        } catch (err) {
+          console.log(`Collection ${collectionName} not found or error:`, err.message);
+        }
+      }
+      
+      totalExpenses = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+      expenseCount = expenses.length;
+      
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+    }
     
-    // Get supplier invoices
-    const pendingInvoices = await db.collection('supplierinvoices')
-      .countDocuments({ status: { $in: ['Draft', 'Pending'] } });
+    try {
+      // Get drawer status
+      const possibleDrawerCollections = ['Drawers', 'drawers', 'Drawer'];
+      
+      for (const collectionName of possibleDrawerCollections) {
+        try {
+          const collections = await db.listCollections({ name: collectionName }).toArray();
+          if (collections.length > 0) {
+            console.log(`Found drawers collection: ${collectionName}`);
+            openDrawers = await db.collection(collectionName).countDocuments({ status: 'Open' });
+            console.log(`Found ${openDrawers} open drawers`);
+            break;
+          }
+        } catch (err) {
+          console.log(`Collection ${collectionName} not found or error:`, err.message);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error fetching drawers:', error);
+    }
     
-    // Get customer payments
-    const todayPayments = await db.collection('customerpayments')
-      .find({ paymentDate: { $gte: startDate, $lte: endDate } })
-      .toArray();
-    const totalCustomerPayments = todayPayments.reduce((sum, pay) => sum + (parseFloat(pay.amount) || 0), 0);
-    
-    // Get available tables
-    const availableTables = await db.collection('restauranttables')
-      .countDocuments({ status: 'Available', isActive: true });
-    
-    res.status(200).json({
+    // Return response with available data
+    const response = {
       sales: {
         totalAmount: totalSales,
-        transactionCount: transactions.length
+        transactionCount: transactionCount
       },
       expenses: {
         totalAmount: totalExpenses,
-        expenseCount: expenses.length
+        expenseCount: expenseCount
       },
       profit: totalSales - totalExpenses,
       drawers: {
         openCount: openDrawers
       },
       suppliers: {
-        pendingInvoices
+        pendingInvoices: pendingInvoices
       },
       customers: {
         paymentsToday: totalCustomerPayments,
-        paymentCount: todayPayments.length
+        paymentCount: paymentCount
       },
       restaurant: {
-        availableTables
+        availableTables: availableTables
       }
-    });
+    };
+    
+    console.log('Dashboard response:', response);
+    res.status(200).json(response);
+    
   } catch (error) {
-    console.error('Error fetching dashboard summary:', error);
-    res.status(500).json({ error: 'فشل في جلب ملخص لوحة التحكم' });
+    console.error('Error in dashboard summary endpoint:', error);
+    res.status(500).json({ 
+      error: 'فشل في جلب ملخص لوحة التحكم',
+      details: error.message 
+    });
+  }
+});
+
+// Debug endpoint to list all collections
+app.get('/api/debug/collections', async (req, res) => {
+  try {
+    const collections = await db.listCollections().toArray();
+    const collectionNames = collections.map(col => col.name);
+    console.log('Available collections:', collectionNames);
+    res.json({ collections: collectionNames });
+  } catch (error) {
+    console.error('Error listing collections:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
