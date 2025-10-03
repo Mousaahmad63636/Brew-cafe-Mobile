@@ -1211,6 +1211,53 @@ header h1 {
     border: 1px solid var(--warning-200);
 }
 
+/* No Data and Error Messages */
+.no-data-message,
+.error-message {
+    text-align: center;
+    padding: var(--space-12);
+    color: var(--secondary-500);
+    background: var(--secondary-50);
+    border-radius: var(--radius-xl);
+    border: 2px dashed var(--secondary-200);
+}
+
+.no-data-message i,
+.error-message i {
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--space-4);
+    color: var(--secondary-400);
+}
+
+.no-data-message h3,
+.error-message h3 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+    color: var(--secondary-700);
+}
+
+.no-data-message p,
+.error-message p {
+    font-size: var(--font-size-base);
+    color: var(--secondary-500);
+    margin: 0;
+}
+
+.error-message {
+    background: var(--error-50);
+    border-color: var(--error-200);
+    color: var(--error-600);
+}
+
+.error-message i {
+    color: var(--error-500);
+}
+
+.error-message h3 {
+    color: var(--error-700);
+}
+
 /* Professional Footer */
 footer {
     text-align: center;

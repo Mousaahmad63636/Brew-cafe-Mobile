@@ -176,41 +176,7 @@ app.get('/api/employees', async (req, res) => {
   }
 });
 
-// Drawer management endpoints
 app.get('/api/drawers', async (req, res) => {
-  try {
-    const { db } = await connectToDatabase();
-    const { status, cashierId, date } = req.query;
-    
-    let query = {};
-    if (status) query.status = status;
-    if (cashierId) query.cashierId = cashierId;
-    
-    if (date) {
-      const startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(date);
-      endDate.setHours(23, 59, 59, 999);
-      
-      query.openedAt = { $gte: startDate, $lte: endDate };
-    }
-    
-    const drawers = await db.collection('drawers')
-      .find(query)
-      .sort({ openedAt: -1 })
-      .limit(50)
-      .toArray();
-    
-    res.status(200).json(drawers);
-  } catch (error) {
-    console.error('Error fetching drawers:', error);
-    res.status(500).json({ error: 'فشل في جلب بيانات الأدراج' });
-  }
-});
-
-// Supplier invoices endpoint
-app.get('/api/supplier-invoices', async (req, res) => {
-  try {
     const { db } = await connectToDatabase();
     const { status, supplierId, date } = req.query;
     

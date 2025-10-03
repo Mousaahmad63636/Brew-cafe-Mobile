@@ -418,20 +418,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Drawers data loading
+    // Drawers data loading - with sample data for now
     async function loadDrawersData(date, status = '') {
-        try {
-            let url = `/api/drawers?date=${date}`;
-            if (status) url += `&status=${status}`;
+        const container = document.getElementById('drawers-container');
+        
+        if (container) {
+            // Sample drawer data for demonstration
+            const sampleDrawers = [
+                {
+                    drawerId: 1,
+                    status: 'Open',
+                    cashierName: 'أحمد محمد',
+                    currentBalance: 1250.50,
+                    totalSales: 2500.00,
+                    totalExpenses: 150.00,
+                    openedAt: new Date().toISOString()
+                },
+                {
+                    drawerId: 2,
+                    status: 'Closed',
+                    cashierName: 'فاطمة علي',
+                    currentBalance: 0.00,
+                    totalSales: 1800.00,
+                    totalExpenses: 75.00,
+                    openedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+                    closedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
+                },
+                {
+                    drawerId: 3,
+                    status: 'Open',
+                    cashierName: 'محمد أحمد',
+                    currentBalance: 950.25,
+                    totalSales: 1950.00,
+                    totalExpenses: 100.00,
+                    openedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+                }
+            ];
             
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch drawers data');
+            // Filter by status if provided
+            const filteredDrawers = status ? sampleDrawers.filter(d => d.status === status) : sampleDrawers;
             
-            const drawers = await response.json();
-            const container = document.getElementById('drawers-container');
-            
-            if (container) {
-                container.innerHTML = drawers.map(drawer => `
+            if (filteredDrawers.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data-message">
+                        <i class="fas fa-cash-register"></i>
+                        <h3>لا توجد أدراج</h3>
+                        <p>لا توجد بيانات أدراج متاحة للفلتر المحدد</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = filteredDrawers.map(drawer => `
                     <div class="drawer-card">
                         <div class="card-header">
                             <span>درج #${drawer.drawerId}</span>
@@ -448,50 +484,85 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `).join('');
             }
-            
-        } catch (error) {
-            console.error('Error loading drawers data:', error);
         }
     }
     
-    // Suppliers data loading
+    // Suppliers data loading - with sample data
     async function loadSuppliersData(date, status = '') {
-        try {
-            let url = `/api/supplier-invoices?date=${date}`;
-            if (status) url += `&status=${status}`;
-            
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch suppliers data');
-            
-            const data = await response.json();
-            const container = document.getElementById('suppliers-container');
-            const summaryContainer = document.getElementById('supplier-summary');
-            
-            // Update summary
-            if (summaryContainer) {
-                summaryContainer.innerHTML = `
-                    <div class="summary-card">
-                        <h3>إجمالي الفواتير</h3>
-                        <p class="value">${data.summary.totalInvoices}</p>
-                    </div>
-                    <div class="summary-card">
-                        <h3>إجمالي المبلغ</h3>
-                        <p class="value amount">$${data.summary.totalAmount.toFixed(2)}</p>
-                    </div>
-                    <div class="summary-card">
-                        <h3>المدفوع</h3>
-                        <p class="value amount">$${data.summary.totalPaid.toFixed(2)}</p>
-                    </div>
-                    <div class="summary-card">
-                        <h3>المتبقي</h3>
-                        <p class="value amount negative">$${data.summary.totalOutstanding.toFixed(2)}</p>
+        const container = document.getElementById('suppliers-container');
+        const summaryContainer = document.getElementById('supplier-summary');
+        
+        // Sample supplier invoices data
+        const sampleInvoices = [
+            {
+                invoiceNumber: 'INV-001',
+                supplierId: 'شركة المواد الغذائية',
+                totalAmount: 2500.00,
+                amountPaid: 2500.00,
+                status: 'Paid',
+                invoiceDate: new Date().toISOString()
+            },
+            {
+                invoiceNumber: 'INV-002',
+                supplierId: 'مورد الخضار والفواكه',
+                totalAmount: 1800.00,
+                amountPaid: 1000.00,
+                status: 'Pending',
+                invoiceDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+                invoiceNumber: 'INV-003',
+                supplierId: 'شركة المشروبات',
+                totalAmount: 950.00,
+                amountPaid: 0.00,
+                status: 'Draft',
+                invoiceDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+            }
+        ];
+        
+        // Filter by status if provided
+        const filteredInvoices = status ? sampleInvoices.filter(inv => inv.status === status) : sampleInvoices;
+        
+        // Calculate summary
+        const totalInvoices = filteredInvoices.length;
+        const totalAmount = filteredInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
+        const totalPaid = filteredInvoices.reduce((sum, inv) => sum + inv.amountPaid, 0);
+        const totalOutstanding = totalAmount - totalPaid;
+        
+        // Update summary
+        if (summaryContainer) {
+            summaryContainer.innerHTML = `
+                <div class="summary-card">
+                    <h3>إجمالي الفواتير</h3>
+                    <p class="value">${totalInvoices}</p>
+                </div>
+                <div class="summary-card">
+                    <h3>إجمالي المبلغ</h3>
+                    <p class="value amount">$${totalAmount.toFixed(2)}</p>
+                </div>
+                <div class="summary-card">
+                    <h3>المدفوع</h3>
+                    <p class="value amount">$${totalPaid.toFixed(2)}</p>
+                </div>
+                <div class="summary-card">
+                    <h3>المتبقي</h3>
+                    <p class="value amount negative">$${totalOutstanding.toFixed(2)}</p>
+                </div>
+            `;
+        }
+        
+        // Update invoices list
+        if (container) {
+            if (filteredInvoices.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data-message">
+                        <i class="fas fa-truck"></i>
+                        <h3>لا توجد فواتير</h3>
+                        <p>لا توجد فواتير موردين للفلتر المحدد</p>
                     </div>
                 `;
-            }
-            
-            // Update invoices list
-            if (container) {
-                container.innerHTML = data.invoices.map(invoice => `
+            } else {
+                container.innerHTML = filteredInvoices.map(invoice => `
                     <div class="invoice-card">
                         <div class="card-header">
                             <span>فاتورة #${invoice.invoiceNumber}</span>
@@ -507,42 +578,83 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `).join('');
             }
-            
-        } catch (error) {
-            console.error('Error loading suppliers data:', error);
         }
     }
     
-    // Customers data loading
+    // Customers data loading - with sample data
     async function loadCustomersData(date, paymentMethod = '') {
-        try {
-            let url = `/api/customer-payments?date=${date}`;
-            if (paymentMethod) url += `&paymentMethod=${paymentMethod}`;
-            
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch customers data');
-            
-            const data = await response.json();
-            const container = document.getElementById('customers-container');
-            const summaryContainer = document.getElementById('customer-summary');
-            
-            // Update summary
-            if (summaryContainer) {
-                summaryContainer.innerHTML = `
-                    <div class="summary-card">
-                        <h3>عدد المدفوعات</h3>
-                        <p class="value">${data.summary.totalPayments}</p>
-                    </div>
-                    <div class="summary-card">
-                        <h3>إجمالي المبلغ</h3>
-                        <p class="value amount">$${data.summary.totalAmount.toFixed(2)}</p>
+        const container = document.getElementById('customers-container');
+        const summaryContainer = document.getElementById('customer-summary');
+        
+        // Sample customer payments data
+        const samplePayments = [
+            {
+                paymentId: 'PAY-001',
+                customerId: 'أحمد محمد علي',
+                amount: 150.00,
+                paymentMethod: 'Cash',
+                paymentDate: new Date().toISOString(),
+                notes: 'دفع نقدي'
+            },
+            {
+                paymentId: 'PAY-002',
+                customerId: 'فاطمة أحمد',
+                amount: 275.50,
+                paymentMethod: 'Card',
+                paymentDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+                notes: 'دفع بالبطاقة'
+            },
+            {
+                paymentId: 'PAY-003',
+                customerId: 'محمد حسن',
+                amount: 89.25,
+                paymentMethod: 'Transfer',
+                paymentDate: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+                notes: 'تحويل بنكي'
+            },
+            {
+                paymentId: 'PAY-004',
+                customerId: 'سارة علي',
+                amount: 320.00,
+                paymentMethod: 'Cash',
+                paymentDate: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+                notes: ''
+            }
+        ];
+        
+        // Filter by payment method if provided
+        const filteredPayments = paymentMethod ? samplePayments.filter(p => p.paymentMethod === paymentMethod) : samplePayments;
+        
+        // Calculate summary
+        const totalPayments = filteredPayments.length;
+        const totalAmount = filteredPayments.reduce((sum, payment) => sum + payment.amount, 0);
+        
+        // Update summary
+        if (summaryContainer) {
+            summaryContainer.innerHTML = `
+                <div class="summary-card">
+                    <h3>عدد المدفوعات</h3>
+                    <p class="value">${totalPayments}</p>
+                </div>
+                <div class="summary-card">
+                    <h3>إجمالي المبلغ</h3>
+                    <p class="value amount">$${totalAmount.toFixed(2)}</p>
+                </div>
+            `;
+        }
+        
+        // Update payments list
+        if (container) {
+            if (filteredPayments.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data-message">
+                        <i class="fas fa-users"></i>
+                        <h3>لا توجد مدفوعات</h3>
+                        <p>لا توجد مدفوعات عملاء للفلتر المحدد</p>
                     </div>
                 `;
-            }
-            
-            // Update payments list
-            if (container) {
-                container.innerHTML = data.payments.map(payment => `
+            } else {
+                container.innerHTML = filteredPayments.map(payment => `
                     <div class="payment-card">
                         <div class="card-header">
                             <span>دفعة #${payment.paymentId}</span>
@@ -557,59 +669,116 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `).join('');
             }
-            
-        } catch (error) {
-            console.error('Error loading customers data:', error);
         }
     }
     
-    // Inventory data loading
+    // Inventory data loading - with sample data
     async function loadInventoryData(date, transactionType = '') {
-        try {
-            let url = `/api/inventory-history?date=${date}`;
-            if (transactionType) url += `&transactionType=${transactionType}`;
-            
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch inventory data');
-            
-            const history = await response.json();
-            const container = document.getElementById('inventory-container');
-            
-            if (container) {
-                container.innerHTML = history.map(item => `
+        const container = document.getElementById('inventory-container');
+        
+        // Sample inventory history data
+        const sampleInventory = [
+            {
+                productId: 'برجر لحم',
+                transactionType: 'Sale',
+                quantity: -5,
+                transactionDate: new Date().toISOString(),
+                notes: 'بيع عادي'
+            },
+            {
+                productId: 'بيتزا مارجريتا',
+                transactionType: 'Sale',
+                quantity: -3,
+                transactionDate: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+                notes: 'بيع للعملاء'
+            },
+            {
+                productId: 'كوكا كولا',
+                transactionType: 'Purchase',
+                quantity: +50,
+                transactionDate: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+                notes: 'شراء من المورد'
+            },
+            {
+                productId: 'فرايز',
+                transactionType: 'Adjustment',
+                quantity: -2,
+                transactionDate: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+                notes: 'تعديل المخزون - تالف'
+            },
+            {
+                productId: 'شاورما دجاج',
+                transactionType: 'Sale',
+                quantity: -8,
+                transactionDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+                notes: 'بيع مساء'
+            }
+        ];
+        
+        // Filter by transaction type if provided
+        const filteredInventory = transactionType ? sampleInventory.filter(item => item.transactionType === transactionType) : sampleInventory;
+        
+        if (container) {
+            if (filteredInventory.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data-message">
+                        <i class="fas fa-boxes"></i>
+                        <h3>لا توجد حركات مخزون</h3>
+                        <p>لا توجد حركات مخزون للفلتر المحدد</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = filteredInventory.map(item => `
                     <div class="inventory-card">
                         <div class="card-header">
-                            <span>منتج #${item.productId}</span>
+                            <span>منتج: ${item.productId}</span>
                             <span class="highlight">${item.transactionType}</span>
                         </div>
                         <div class="card-body">
-                            <div><strong>الكمية:</strong> ${item.quantity}</div>
+                            <div><strong>الكمية:</strong> <span class="${item.quantity > 0 ? 'amount' : 'amount negative'}">${item.quantity > 0 ? '+' : ''}${item.quantity}</span></div>
                             <div><strong>تاريخ العملية:</strong> <span class="date-time">${new Date(item.transactionDate).toLocaleString('ar-EG')}</span></div>
                             ${item.notes ? `<div><strong>ملاحظات:</strong> ${item.notes}</div>` : ''}
                         </div>
                     </div>
                 `).join('');
             }
-            
-        } catch (error) {
-            console.error('Error loading inventory data:', error);
         }
     }
     
-    // Restaurant data loading
+    // Restaurant data loading - with sample data
     async function loadRestaurantData(status = '') {
-        try {
-            let url = '/api/restaurant-tables';
-            if (status) url += `?status=${status}`;
-            
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch restaurant data');
-            
-            const tables = await response.json();
-            const container = document.getElementById('tables-grid');
-            
-            if (container) {
-                container.innerHTML = tables.map(table => `
+        const container = document.getElementById('tables-grid');
+        
+        // Sample restaurant tables data
+        const sampleTables = [
+            { tableNumber: 1, status: 'Available', description: 'طاولة للشخصين' },
+            { tableNumber: 2, status: 'Occupied', description: 'طاولة للأربعة أشخاص' },
+            { tableNumber: 3, status: 'Available', description: 'طاولة للشخصين' },
+            { tableNumber: 4, status: 'Reserved', description: 'طاولة للستة أشخاص' },
+            { tableNumber: 5, status: 'Available', description: 'طاولة للأربعة أشخاص' },
+            { tableNumber: 6, status: 'Occupied', description: 'طاولة للثمانية أشخاص' },
+            { tableNumber: 7, status: 'Available', description: 'طاولة للشخصين' },
+            { tableNumber: 8, status: 'Available', description: 'طاولة للأربعة أشخاص' },
+            { tableNumber: 9, status: 'Reserved', description: 'طاولة للستة أشخاص' },
+            { tableNumber: 10, status: 'Available', description: 'طاولة للشخصين' },
+            { tableNumber: 11, status: 'Occupied', description: 'طاولة للأربعة أشخاص' },
+            { tableNumber: 12, status: 'Available', description: 'طاولة للعشرة أشخاص' }
+        ];
+        
+        // Filter by status if provided
+        const filteredTables = status ? sampleTables.filter(table => table.status === status) : sampleTables;
+        
+        if (container) {
+            if (filteredTables.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data-message">
+                        <i class="fas fa-utensils"></i>
+                        <h3>لا توجد طاولات</h3>
+                        <p>لا توجد طاولات للحالة المحددة</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = filteredTables.map(table => `
                     <div class="table-card ${table.status.toLowerCase()}">
                         <h3>طاولة ${table.tableNumber}</h3>
                         <p class="status-badge status-${table.status.toLowerCase()}">${table.status}</p>
@@ -617,9 +786,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `).join('');
             }
-            
-        } catch (error) {
-            console.error('Error loading restaurant data:', error);
         }
     }
     
