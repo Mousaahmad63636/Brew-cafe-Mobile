@@ -1,0 +1,299 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    line-height: 1.5;
+    color: #333;
+    background-color: #f5f5f5;
+    direction: rtl;
+    font-size: 14px;
+}
+
+.loading::after {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ddd;
+    border-top: 2px solid #2c3e50;
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error {
+    color: #e74c3c;
+    background-color: #ffeeee;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+/* Hide traditional table on mobile */
+#transactions-table {
+    display: none;
+}
+
+/* Mobile card layout for transactions */
+.transaction-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.transaction-card {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-right: 3px solid #2c3e50;
+}
+
+.transaction-card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.transaction-id {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.transaction-amount {
+    font-weight: 700;
+    color: #2196F3;
+}
+
+.transaction-detail {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 0.9rem;
+}
+
+.detail-label {
+    color: #777;
+}
+
+.detail-value {
+    font-weight: 500;
+    color: #333;
+}
+
+footer {
+    text-align: center;
+    padding: 16px;
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 16px;
+}
+
+/* Navigation Styles */
+.main-nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.nav-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.nav-btn.active {
+    background: white;
+    color: #667eea;
+    font-weight: 600;
+}
+
+/* Section Management */
+.section {
+    margin-bottom: 2rem;
+}
+
+.filter-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+}
+
+.filter-row select {
+    padding: 0.5rem;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    background: white;
+    font-size: 1rem;
+    min-width: 200px;
+}
+
+.data-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.supplier-summary,
+.customer-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Tables Grid */
+.tables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.table-card {
+    background: white;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.table-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.table-card.available {
+    border-color: #27ae60;
+    background: #f8fff9;
+}
+
+.table-card.occupied {
+    border-color: #e74c3c;
+    background: #fff8f8;
+}
+
+.table-card.reserved {
+    border-color: #f39c12;
+    background: #fffbf5;
+}
+
+/* Data Cards */
+.drawer-card,
+.invoice-card,
+.payment-card,
+.inventory-card {
+    background: white;
+    border: 1px solid #e1e8ed;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.drawer-card:hover,
+.invoice-card:hover,
+.payment-card:hover,
+.inventory-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.card-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.status-open {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-closed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-draft {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-pending {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-paid {
+    background: #d4edda;
+    color: #155724;
+}
+
+/* Utility Classes */
+.amount {
+    font-weight: 600;
+    color: #27ae60;
+}
+
+.amount.negative {
+    color: #e74c3c;
+}
+
+.date-time {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.highlight {
+    background: #fff3cd;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+}

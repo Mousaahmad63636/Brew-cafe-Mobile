@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <title>لوحة مبيعات كويك تك</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>إدارة مطعم أبن البلد</h1>
+            <nav class="main-nav">
+                <button class="nav-btn active" data-section="dashboard">لوحة التحكم</button>
+                <button class="nav-btn" data-section="sales">المبيعات</button>
+                <button class="nav-btn" data-section="drawers">الأدراج</button>
+                <button class="nav-btn" data-section="suppliers">الموردين</button>
+                <button class="nav-btn" data-section="customers">العملاء</button>
+                <button class="nav-btn" data-section="inventory">المخزون</button>
+                <button class="nav-btn" data-section="restaurant">الطاولات</button>
+            </nav>
+        </header>
+
+        <div class="filter-section">
+            <div class="period-filter">
+                <button data-period="today" class="active">اليوم</button>
+                <button data-period="week">الأسبوع</button>
+                <button data-period="month">الشهر</button>
+            </div>
+            <div class="date-filter">
+                <input type="date" id="date">
+            </div>
+        </div>
+
+        <div class="employee-filter-container">
+            <div class="employee-filter">
+                <label for="employee-select">الموظف:</label>
+                <select id="employee-select">
+                    <option value="all">جميع الموظفين</option>
+                    <!-- Will be populated dynamically -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div class="section" id="dashboard-section">
+            <div class="summary-section">
+                <div class="summary-card" id="total-sales">
+                    <h2>إجمالي المبيعات</h2>
+                    <p class="value">$0.00</p>
+                </div>
+                <div class="summary-card" id="total-expense">
+                    <h2>إجمالي المصروفات</h2>
+                    <p class="value">$0.00</p>
+                </div>
+                <div class="summary-card" id="total-profit">
+                    <h2>صافي الربح</h2>
+                    <p class="value">$0.00</p>
+                </div>
+                <div class="summary-card" id="total-transactions">
+                    <h2>عدد المعاملات</h2>
+                    <p class="value">0</p>
+                </div>
+                <div class="summary-card" id="open-drawers">
+                    <h2>الأدراج المفتوحة</h2>
+                    <p class="value">0</p>
+                </div>
+                <div class="summary-card" id="pending-invoices">
+                    <h2>فواتير معلقة</h2>
+                    <p class="value">0</p>
+                </div>
+                <div class="summary-card" id="customer-payments">
+                    <h2>مدفوعات العملاء</h2>
+                    <p class="value">$0.00</p>
+                </div>
+                <div class="summary-card" id="available-tables">
+                    <h2>طاولات متاحة</h2>
+                    <p class="value">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Section -->
+        <div class="section" id="sales-section" style="display: none;">
+            <div class="transactions-section">
+                <h2>المعاملات</h2>
+                <div class="loading" id="loading">جاري التحميل...</div>
+                <div class="error" id="error"></div>
+                <div class="no-data" id="no-data">لا توجد معاملات لهذا التاريخ.</div>
+                
+                <!-- Traditional table (hidden on mobile) -->
+                <table id="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>رقم</th>
+                            <th>العميل</th>
+                            <th>الموظف</th>
+                            <th>المبلغ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-body">
+                    </tbody>
+                </table>
+                
+                <!-- Mobile card layout -->
+                <div class="transaction-cards" id="transaction-cards">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawers Section -->
+        <div class="section" id="drawers-section" style="display: none;">
+            <h2>إدارة الأدراج</h2>
+            <div class="filter-row">
+                <select id="drawer-status-filter">
+                    <option value="">جميع الحالات</option>
+                    <option value="Open">مفتوح</option>
+                    <option value="Closed">مغلق</option>
+                </select>
+            </div>
+            <div class="data-container" id="drawers-container">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Suppliers Section -->
+        <div class="section" id="suppliers-section" style="display: none;">
+            <h2>فواتير الموردين</h2>
+            <div class="filter-row">
+                <select id="supplier-status-filter">
+                    <option value="">جميع الحالات</option>
+                    <option value="Draft">مسودة</option>
+                    <option value="Pending">معلق</option>
+                    <option value="Paid">مدفوع</option>
+                </select>
+            </div>
+            <div class="supplier-summary" id="supplier-summary">
+                <!-- Summary cards -->
+            </div>
+            <div class="data-container" id="suppliers-container">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Customers Section -->
+        <div class="section" id="customers-section" style="display: none;">
+            <h2>مدفوعات العملاء</h2>
+            <div class="filter-row">
+                <select id="payment-method-filter">
+                    <option value="">جميع طرق الدفع</option>
+                    <option value="Cash">نقدي</option>
+                    <option value="Card">بطاقة</option>
+                    <option value="Transfer">تحويل</option>
+                </select>
+            </div>
+            <div class="customer-summary" id="customer-summary">
+                <!-- Summary cards -->
+            </div>
+            <div class="data-container" id="customers-container">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div class="section" id="inventory-section" style="display: none;">
+            <h2>تاريخ المخزون</h2>
+            <div class="filter-row">
+                <select id="inventory-type-filter">
+                    <option value="">جميع العمليات</option>
+                    <option value="Sale">بيع</option>
+                    <option value="Purchase">شراء</option>
+                    <option value="Adjustment">تعديل</option>
+                </select>
+            </div>
+            <div class="data-container" id="inventory-container">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Restaurant Section -->
+        <div class="section" id="restaurant-section" style="display: none;">
+            <h2>طاولات المطعم</h2>
+            <div class="filter-row">
+                <select id="table-status-filter">
+                    <option value="">جميع الحالات</option>
+                    <option value="Available">متاح</option>
+                    <option value="Occupied">مشغول</option>
+                    <option value="Reserved">محجوز</option>
+                </select>
+            </div>
+            <div class="tables-grid" id="tables-grid">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <footer>
+        <p>© 2025 أنظمة كويك تك - نظام إدارة المطاعم المتكامل</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
