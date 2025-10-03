@@ -285,22 +285,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="transaction-detail">
                         <div class="detail-label">التاريخ:</div>
-                        <div class="detail-value">${formattedDate}</div>
+                        <div class="detail-value">${formattedDate} ${formattedTime}</div>
+                    </div>
+                    <div class="transaction-detail">
+                        <div class="detail-label">طريقة الدفع:</div>
+                        <div class="detail-value">${tx.paymentMethod || 'نقدي'}</div>
+                    </div>
+                    <div class="transaction-actions">
+                        <button class="detail-btn" onclick="showTransactionDetails('${tx.transactionId}')">
+                            <i class="fas fa-eye"></i> عرض التفاصيل
+                        </button>
                     </div>
                 `;
                 
                 transactionCards.appendChild(card);
-                
-                // Also create row for table (for larger screens)
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${tx.transactionId}</td>
-                    <td>${tx.customerName || 'عميل عابر'}</td>
-                    <td>${tx.cashierName || 'غير محدد'}</td>
-                    <td>$${amount.toFixed(2)}</td>
-                `;
-                
-                transactionsBody.appendChild(row);
             });
         }
     }
@@ -653,19 +651,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Transaction detail modal functions
     window.showTransactionDetails = async function(transactionId) {
         try {
+            console.log('Fetching transaction details for ID:', transactionId);
+            
             const response = await fetch(`/api/transaction-details/${transactionId}`);
-            if (!response.ok) throw new Error('Failed to fetch transaction details');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             
             const transaction = await response.json();
+            console.log('Transaction details received:', transaction);
+            
             displayTransactionDetails(transaction);
             
             const modal = document.getElementById('transaction-modal');
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                console.log('Modal opened successfully');
+            } else {
+                console.error('Modal element not found');
+            }
             
         } catch (error) {
             console.error('Error fetching transaction details:', error);
-            alert('فشل في جلب تفاصيل المعاملة');
+            alert('فشل في جلب تفاصيل المعاملة: ' + error.message);
         }
     };
     
