@@ -335,30 +335,70 @@ app.get('/api/inventory-history', async (req, res) => {
 
 // Restaurant tables endpoint
 app.get('/api/restaurant-tables', async (req, res) => {
-  try {
-    const { db } = await connectToDatabase();
-    const { status, isActive } = req.query;
-    
-    let query = {};
-    if (status) query.status = status;
-    if (isActive !== undefined) query.isActive = isActive === 'true';
-    
-    const tables = await db.collection('restauranttables')
-      .find(query)
-      .sort({ tableNumber: 1 })
-      .toArray();
-    
-    res.status(200).json(tables);
-  } catch (error) {
-    console.error('Error fetching restaurant tables:', error);
-    res.status(500).json({ error: 'فشل في جلب طاولات المطعم' });
-  }
+    try {
+        const { status } = req.query;
+        
+        let filter = {};
+        if (status) {
+            filter.status = status;
+        }
+        
+        const tables = await db.collection('RestaurantTables').find(filter).toArray();
+        
+        res.json(tables);
+    } catch (error) {
+        console.error('Error fetching restaurant tables:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Transaction details endpoint
+app.get('/api/transaction-details/:transactionId', async (req, res) => {
+    try {
+        const { transactionId } = req.params;
+        
+        // Get transaction details
+        const transaction = await db.collection('Transactions').findOne({
+            transactionId: transactionId
+        });
+        
+        if (!transaction) {
+            return res.status(404).json({ error: 'Transaction not found' });
+        }
+        
+        // Get transaction items
+        const items = await db.collection('TransactionItems').find({
+            transactionId: transactionId
+        }).toArray();
+        
+        // Get employee name
+        let employeeName = 'غير محدد';
+        if (transaction.employeeId) {
+            const employee = await db.collection('Employees').findOne({
+                employeeId: transaction.employeeId
+            });
+            if (employee) {
+                employeeName = employee.name || employee.employeeName;
+            }
+        }
+        
+        // Combine transaction with items and employee info
+        const transactionDetails = {
+            ...transaction,
+            items: items,
+            employeeName: employeeName
+        };
+        
+        res.json(transactionDetails);
+    } catch (error) {
+        console.error('Error fetching transaction details:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // Dashboard summary endpoint
 app.get('/api/dashboard-summary', async (req, res) => {
   try {
-    const { db } = await connectToDatabase();
     const { date } = req.query;
     
     let startDate, endDate;

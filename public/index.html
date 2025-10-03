@@ -132,19 +132,24 @@
                 <div class="error" id="error"></div>
                 <div class="no-data" id="no-data">لا توجد معاملات لهذا التاريخ.</div>
                 
-                <!-- Traditional table (hidden on mobile) -->
-                <table id="transactions-table">
-                    <thead>
-                        <tr>
-                            <th>رقم</th>
-                            <th>العميل</th>
-                            <th>الموظف</th>
-                            <th>المبلغ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactions-body">
-                    </tbody>
-                </table>
+                <!-- Professional transactions table -->
+                <div class="table-container">
+                    <table id="transactions-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag"></i> رقم المعاملة</th>
+                                <th><i class="fas fa-user"></i> العميل</th>
+                                <th><i class="fas fa-user-tie"></i> الموظف</th>
+                                <th><i class="fas fa-dollar-sign"></i> المبلغ</th>
+                                <th><i class="fas fa-clock"></i> التاريخ</th>
+                                <th><i class="fas fa-credit-card"></i> طريقة الدفع</th>
+                                <th><i class="fas fa-eye"></i> التفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-body">
+                        </tbody>
+                    </table>
+                </div>
                 
                 <!-- Mobile card layout -->
                 <div class="transaction-cards" id="transaction-cards">
@@ -239,6 +244,21 @@
         </div>
     </div>
 
+    </div>
+
+    <!-- Professional Transaction Detail Modal -->
+    <div class="modal-overlay" id="transaction-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-receipt"></i> تفاصيل المعاملة</h2>
+                <button class="modal-close" onclick="closeTransactionModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="transaction-details">
+                <!-- Transaction details will be populated here -->
+            </div>
+        </div>
     </div>
 
     <footer>

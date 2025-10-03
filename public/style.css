@@ -919,14 +919,21 @@ header h1 {
     color: var(--secondary-700);
 }
 
-/* Professional Tables */
-#transactions-table {
-    width: 100%;
+/* Professional Table Container */
+.table-container {
     background: white;
     border-radius: var(--radius-xl);
     overflow: hidden;
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--secondary-200);
+    margin-bottom: var(--space-6);
+}
+
+/* Professional Tables */
+#transactions-table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
 }
 
 #transactions-table thead {
@@ -951,6 +958,184 @@ header h1 {
 
 #transactions-table tbody tr:hover {
     background: var(--primary-50);
+}
+
+#transactions-table th i {
+    margin-left: var(--space-2);
+    font-size: var(--font-size-sm);
+}
+
+.detail-btn {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-size-xs);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.detail-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Professional Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    background: white;
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-xl);
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: slideInUp 0.3s ease-out;
+}
+
+.modal-header {
+    background: var(--gradient-primary);
+    color: white;
+    padding: var(--space-6);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+}
+
+.modal-header h2 i {
+    margin-left: var(--space-2);
+}
+
+.modal-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-size-lg);
+    transition: all 0.3s;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.modal-body {
+    padding: var(--space-6);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Transaction Detail Layout */
+.transaction-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.detail-section {
+    background: var(--secondary-50);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    border: 1px solid var(--secondary-200);
+}
+
+.detail-section h3 {
+    color: var(--primary-600);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--secondary-200);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row .label {
+    color: var(--secondary-600);
+    font-weight: 500;
+}
+
+.detail-row .value {
+    color: var(--secondary-800);
+    font-weight: 600;
+}
+
+.items-table {
+    width: 100%;
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--secondary-200);
+}
+
+.items-table th,
+.items-table td {
+    padding: var(--space-3);
+    text-align: right;
+    border-bottom: 1px solid var(--secondary-200);
+}
+
+.items-table th {
+    background: var(--secondary-100);
+    font-weight: 600;
+    color: var(--secondary-700);
 }
 
 /* Professional Loading States */

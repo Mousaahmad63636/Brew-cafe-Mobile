@@ -250,10 +250,18 @@ document.addEventListener('DOMContentLoaded', function() {
             noDataEl.style.display = 'none';
             transactionCards.style.display = 'flex';
             
+            // Show table on desktop
+            if (window.innerWidth > 768) {
+                transactionsTable.style.display = 'table';
+                transactionCards.style.display = 'none';
+                populateTransactionsTable(transactions);
+            }
+            
             transactions.forEach(tx => {
                 // Process transaction data
                 const txDate = new Date(tx.transactionDate);
-                const formattedDate = `${txDate.getDate()}/${txDate.getMonth() + 1}/${txDate.getFullYear()} ${txDate.getHours().toString().padStart(2, '0')}:${txDate.getMinutes().toString().padStart(2, '0')}`;
+                const formattedDate = `${txDate.getDate()}/${txDate.getMonth() + 1}/${txDate.getFullYear()}`;
+                const formattedTime = `${txDate.getHours().toString().padStart(2, '0')}:${txDate.getMinutes().toString().padStart(2, '0')}`;
                 
                 const rawAmount = tx.totalAmount;
                 const amount = !isNaN(parseFloat(rawAmount)) ? parseFloat(rawAmount) : 0;
@@ -612,4 +620,156 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading restaurant data:', error);
         }
     }
+    
+    // Transaction table population
+    function populateTransactionsTable(transactions) {
+        const tbody = document.getElementById('transactions-body');
+        tbody.innerHTML = '';
+        
+        transactions.forEach(tx => {
+            const txDate = new Date(tx.transactionDate);
+            const formattedDate = `${txDate.getDate()}/${txDate.getMonth() + 1}/${txDate.getFullYear()}`;
+            const formattedTime = `${txDate.getHours().toString().padStart(2, '0')}:${txDate.getMinutes().toString().padStart(2, '0')}`;
+            const amount = !isNaN(parseFloat(tx.totalAmount)) ? parseFloat(tx.totalAmount) : 0;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${tx.transactionId}</td>
+                <td>${tx.customerId || 'عميل عام'}</td>
+                <td>${tx.employeeName || 'غير محدد'}</td>
+                <td class="amount">$${amount.toFixed(2)}</td>
+                <td>${formattedDate} ${formattedTime}</td>
+                <td>${tx.paymentMethod || 'نقدي'}</td>
+                <td>
+                    <button class="detail-btn" onclick="showTransactionDetails('${tx.transactionId}')">
+                        <i class="fas fa-eye"></i> عرض
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    // Transaction detail modal functions
+    window.showTransactionDetails = async function(transactionId) {
+        try {
+            const response = await fetch(`/api/transaction-details/${transactionId}`);
+            if (!response.ok) throw new Error('Failed to fetch transaction details');
+            
+            const transaction = await response.json();
+            displayTransactionDetails(transaction);
+            
+            const modal = document.getElementById('transaction-modal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+        } catch (error) {
+            console.error('Error fetching transaction details:', error);
+            alert('فشل في جلب تفاصيل المعاملة');
+        }
+    };
+    
+    window.closeTransactionModal = function() {
+        const modal = document.getElementById('transaction-modal');
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    };
+    
+    function displayTransactionDetails(transaction) {
+        const detailsContainer = document.getElementById('transaction-details');
+        const txDate = new Date(transaction.transactionDate);
+        const formattedDateTime = txDate.toLocaleString('ar-EG');
+        
+        detailsContainer.innerHTML = `
+            <div class="transaction-detail-grid">
+                <div class="detail-section">
+                    <h3><i class="fas fa-info-circle"></i> معلومات المعاملة</h3>
+                    <div class="detail-row">
+                        <span class="label">رقم المعاملة:</span>
+                        <span class="value">${transaction.transactionId}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">التاريخ والوقت:</span>
+                        <span class="value">${formattedDateTime}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">الموظف:</span>
+                        <span class="value">${transaction.employeeName || 'غير محدد'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">العميل:</span>
+                        <span class="value">${transaction.customerId || 'عميل عام'}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h3><i class="fas fa-dollar-sign"></i> المبالغ المالية</h3>
+                    <div class="detail-row">
+                        <span class="label">المبلغ الإجمالي:</span>
+                        <span class="value amount">$${parseFloat(transaction.totalAmount || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">الضريبة:</span>
+                        <span class="value">$${parseFloat(transaction.taxAmount || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">الخصم:</span>
+                        <span class="value">$${parseFloat(transaction.discountAmount || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">طريقة الدفع:</span>
+                        <span class="value">${transaction.paymentMethod || 'نقدي'}</span>
+                    </div>
+                </div>
+            </div>
+            
+            ${transaction.items && transaction.items.length > 0 ? `
+                <div class="detail-section">
+                    <h3><i class="fas fa-list"></i> الأصناف المباعة</h3>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>الصنف</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${transaction.items.map(item => `
+                                <tr>
+                                    <td>${item.productName || item.productId}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>$${parseFloat(item.unitPrice || 0).toFixed(2)}</td>
+                                    <td class="amount">$${parseFloat(item.totalPrice || 0).toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : ''}
+            
+            ${transaction.notes ? `
+                <div class="detail-section">
+                    <h3><i class="fas fa-sticky-note"></i> ملاحظات</h3>
+                    <p>${transaction.notes}</p>
+                </div>
+            ` : ''}
+        `;
+    }
+    
+    // Close modal on outside click
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('transaction-modal');
+        if (e.target === modal) {
+            closeTransactionModal();
+        }
+    });
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeTransactionModal();
+        }
+    });
 });
