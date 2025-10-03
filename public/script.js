@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // API Configuration - Use relative URLs for both local and Vercel
+    const API_BASE_URL = ''; // Always use relative URLs
+    
+    console.log('API Base URL:', API_BASE_URL);
+    console.log('Current location:', window.location.href);
+    
     const dateInput = document.getElementById('date');
     const periodButtons = document.querySelectorAll('.period-filter button');
     const employeeSelect = document.getElementById('employee-select');
@@ -174,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function fetchEmployees() {
         try {
-            const response = await fetch('/api/employees');
+            const response = await fetch(`${API_BASE_URL}/api/employees`);
             if (!response.ok) {
                 throw new Error('فشل في جلب بيانات الموظفين');
             }
@@ -196,36 +202,34 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error fetching employees:', err);
         }
     }
-    
-    function fetchSalesData(date, period, employeeId) {
+    async function fetchSalesData(date, period, employeeId) {
         showLoading();
         
-        let url = `/api/sales?date=${date}`;
-        if(period) {
-            url += `&period=${period}`;
+        try {
+            let url = `${API_BASE_URL}/api/sales?date=${date}`;
+            if(period) {
+                url += `&period=${period}`;
+            }
+            if(employeeId && employeeId !== 'all') {
+                url += `&employee=${employeeId}`;
+            }
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('فشل في جلب البيانات');
+            }
+            
+            const data = await response.json();
+            hideLoading();
+            data.summary.startDate = new Date(data.summary.startDate);
+            data.summary.endDate = new Date(data.summary.endDate);
+            displayData(data);
+            
+        } catch (err) {
+            hideLoading();
+            showError('خطأ في تحميل بيانات المبيعات. يرجى المحاولة لاحقاً.');
+            console.error(err);
         }
-        if(employeeId && employeeId !== 'all') {
-            url += `&employee=${employeeId}`;
-        }
-        
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('فشل في جلب البيانات');
-                }
-                return response.json();
-            })
-            .then(data => {
-                hideLoading();
-                data.summary.startDate = new Date(data.summary.startDate);
-                data.summary.endDate = new Date(data.summary.endDate);
-                displayData(data);
-            })
-            .catch(err => {
-                hideLoading();
-                showError('خطأ في تحميل بيانات المبيعات. يرجى المحاولة لاحقاً.');
-                console.error(err);
-            });
     }
     
     function displayData(data) {
@@ -394,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Dashboard data loading
     async function loadDashboardData(date) {
         try {
-            const response = await fetch(`/api/dashboard-summary?date=${date}`);
+            const response = await fetch(`${API_BASE_URL}/api/dashboard-summary?date=${date}`);
             if (!response.ok) throw new Error('Failed to fetch dashboard data');
             
             const data = await response.json();
@@ -653,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('Fetching transaction details for ID:', transactionId);
             
-            const response = await fetch(`/api/transaction-details/${transactionId}`);
+            const response = await fetch(`${API_BASE_URL}/api/transaction-details/${transactionId}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

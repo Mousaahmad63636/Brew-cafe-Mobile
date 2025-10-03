@@ -355,30 +355,112 @@ app.get('/api/restaurant-tables', async (req, res) => {
 // Transaction details endpoint
 app.get('/api/transaction-details/:transactionId', async (req, res) => {
     try {
+        const { db } = await connectToDatabase();
         const { transactionId } = req.params;
         
-        // Get transaction details
-        const transaction = await db.collection('Transactions').findOne({
-            transactionId: transactionId
-        });
+        console.log('Fetching transaction details for ID:', transactionId);
+        
+        // Try different possible collection names and field names for transactions
+        const possibleTransactionCollections = ['Transactions', 'transactions', 'Transaction'];
+        let transaction = null;
+        
+        for (const collectionName of possibleTransactionCollections) {
+            try {
+                const collections = await db.listCollections({ name: collectionName }).toArray();
+                if (collections.length > 0) {
+                    console.log(`Checking collection: ${collectionName}`);
+                    
+                    // Try different possible field names for transaction ID
+                    const possibleQueries = [
+                        { transactionId: transactionId },
+                        { transactionId: parseInt(transactionId) },
+                        { _id: transactionId },
+                        { id: transactionId },
+                        { id: parseInt(transactionId) }
+                    ];
+                    
+                    for (const query of possibleQueries) {
+                        transaction = await db.collection(collectionName).findOne(query);
+                        if (transaction) {
+                            console.log(`Found transaction with query:`, query);
+                            break;
+                        }
+                    }
+                    
+                    if (transaction) break;
+                }
+            } catch (err) {
+                console.log(`Error checking collection ${collectionName}:`, err.message);
+            }
+        }
         
         if (!transaction) {
+            console.log('Transaction not found with ID:', transactionId);
             return res.status(404).json({ error: 'Transaction not found' });
         }
         
-        // Get transaction items
-        const items = await db.collection('TransactionItems').find({
-            transactionId: transactionId
-        }).toArray();
+        console.log('Found transaction:', transaction);
         
-        // Get employee name
+        // Try to get transaction items
+        let items = [];
+        const possibleItemCollections = ['TransactionItems', 'transactionitems', 'TransactionItem', 'Items'];
+        
+        for (const collectionName of possibleItemCollections) {
+            try {
+                const collections = await db.listCollections({ name: collectionName }).toArray();
+                if (collections.length > 0) {
+                    console.log(`Checking items collection: ${collectionName}`);
+                    
+                    const possibleQueries = [
+                        { transactionId: transactionId },
+                        { transactionId: parseInt(transactionId) },
+                        { transaction_id: transactionId },
+                        { transaction_id: parseInt(transactionId) }
+                    ];
+                    
+                    for (const query of possibleQueries) {
+                        items = await db.collection(collectionName).find(query).toArray();
+                        if (items.length > 0) {
+                            console.log(`Found ${items.length} items with query:`, query);
+                            break;
+                        }
+                    }
+                    
+                    if (items.length > 0) break;
+                }
+            } catch (err) {
+                console.log(`Error checking items collection ${collectionName}:`, err.message);
+            }
+        }
+        
+        // Try to get employee name
         let employeeName = 'غير محدد';
-        if (transaction.employeeId) {
-            const employee = await db.collection('Employees').findOne({
-                employeeId: transaction.employeeId
-            });
-            if (employee) {
-                employeeName = employee.name || employee.employeeName;
+        if (transaction.employeeId || transaction.employee_id || transaction.cashierId) {
+            const employeeId = transaction.employeeId || transaction.employee_id || transaction.cashierId;
+            
+            const possibleEmployeeCollections = ['Employees', 'employees', 'Employee'];
+            
+            for (const collectionName of possibleEmployeeCollections) {
+                try {
+                    const collections = await db.listCollections({ name: collectionName }).toArray();
+                    if (collections.length > 0) {
+                        const employee = await db.collection(collectionName).findOne({
+                            $or: [
+                                { employeeId: employeeId },
+                                { _id: employeeId },
+                                { id: employeeId }
+                            ]
+                        });
+                        
+                        if (employee) {
+                            employeeName = employee.name || employee.employeeName || employee.firstName || 'غير محدد';
+                            console.log('Found employee:', employeeName);
+                            break;
+                        }
+                    }
+                } catch (err) {
+                    console.log(`Error checking employee collection ${collectionName}:`, err.message);
+                }
             }
         }
         
@@ -386,13 +468,27 @@ app.get('/api/transaction-details/:transactionId', async (req, res) => {
         const transactionDetails = {
             ...transaction,
             items: items,
-            employeeName: employeeName
+            employeeName: employeeName,
+            // Ensure we have standard field names
+            transactionId: transaction.transactionId || transaction.id || transaction._id,
+            totalAmount: transaction.totalAmount || transaction.total_amount || transaction.amount || 0,
+            taxAmount: transaction.taxAmount || transaction.tax_amount || transaction.tax || 0,
+            discountAmount: transaction.discountAmount || transaction.discount_amount || transaction.discount || 0,
+            paymentMethod: transaction.paymentMethod || transaction.payment_method || 'نقدي',
+            customerId: transaction.customerId || transaction.customer_id || 'عميل عام',
+            notes: transaction.notes || transaction.description || ''
         };
         
+        console.log('Returning transaction details:', transactionDetails);
         res.json(transactionDetails);
+        
     } catch (error) {
         console.error('Error fetching transaction details:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            details: error.message,
+            transactionId: req.params.transactionId
+        });
     }
 });
 
