@@ -693,6 +693,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const txDate = new Date(transaction.transactionDate);
         const formattedDateTime = txDate.toLocaleString('ar-EG');
         
+        // Helper function to parse MongoDB decimal values
+        function parseMongoDecimal(value) {
+            if (!value) return 0;
+            if (typeof value === 'object' && value.$numberDecimal) {
+                return parseFloat(value.$numberDecimal);
+            }
+            return parseFloat(value) || 0;
+        }
+        
+        // Parse amounts
+        const totalAmount = parseMongoDecimal(transaction.totalAmount);
+        const taxAmount = parseMongoDecimal(transaction.taxAmount);
+        const discountAmount = parseMongoDecimal(transaction.discountAmount);
+        const paidAmount = parseMongoDecimal(transaction.paidAmount);
+        
+        // Use transactionDetails if items is empty (as shown in your console)
+        const itemsData = transaction.items && transaction.items.length > 0 
+            ? transaction.items 
+            : transaction.transactionDetails || [];
+        
         detailsContainer.innerHTML = `
             <div class="transaction-detail-grid">
                 <div class="detail-section">
@@ -711,7 +731,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="detail-row">
                         <span class="label">العميل:</span>
-                        <span class="value">${transaction.customerId || 'عميل عام'}</span>
+                        <span class="value">${transaction.customerId || transaction.customerName || 'عميل عام'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">الحالة:</span>
+                        <span class="value">${transaction.status || 'مكتملة'}</span>
                     </div>
                 </div>
                 
@@ -719,15 +743,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h3><i class="fas fa-dollar-sign"></i> المبالغ المالية</h3>
                     <div class="detail-row">
                         <span class="label">المبلغ الإجمالي:</span>
-                        <span class="value amount">$${parseFloat(transaction.totalAmount || 0).toFixed(2)}</span>
+                        <span class="value amount">$${totalAmount.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">المبلغ المدفوع:</span>
+                        <span class="value amount">$${paidAmount.toFixed(2)}</span>
                     </div>
                     <div class="detail-row">
                         <span class="label">الضريبة:</span>
-                        <span class="value">$${parseFloat(transaction.taxAmount || 0).toFixed(2)}</span>
+                        <span class="value">$${taxAmount.toFixed(2)}</span>
                     </div>
                     <div class="detail-row">
                         <span class="label">الخصم:</span>
-                        <span class="value">$${parseFloat(transaction.discountAmount || 0).toFixed(2)}</span>
+                        <span class="value">$${discountAmount.toFixed(2)}</span>
                     </div>
                     <div class="detail-row">
                         <span class="label">طريقة الدفع:</span>
@@ -736,27 +764,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
             
-            ${transaction.items && transaction.items.length > 0 ? `
+            ${itemsData && itemsData.length > 0 ? `
                 <div class="detail-section">
                     <h3><i class="fas fa-list"></i> الأصناف المباعة</h3>
                     <table class="items-table">
                         <thead>
                             <tr>
-                                <th>الصنف</th>
+                                <th>رقم الصنف</th>
                                 <th>الكمية</th>
                                 <th>السعر</th>
+                                <th>الخصم</th>
                                 <th>الإجمالي</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${transaction.items.map(item => `
-                                <tr>
-                                    <td>${item.productName || item.productId}</td>
-                                    <td>${item.quantity}</td>
-                                    <td>$${parseFloat(item.unitPrice || 0).toFixed(2)}</td>
-                                    <td class="amount">$${parseFloat(item.totalPrice || 0).toFixed(2)}</td>
-                                </tr>
-                            `).join('')}
+                            ${itemsData.map(item => {
+                                const quantity = parseMongoDecimal(item.quantity);
+                                const unitPrice = parseMongoDecimal(item.unitPrice);
+                                const discount = parseMongoDecimal(item.discount);
+                                const total = parseMongoDecimal(item.total);
+                                
+                                return `
+                                    <tr>
+                                        <td>${item.productName || item.productId || 'غير محدد'}</td>
+                                        <td>${quantity}</td>
+                                        <td>$${unitPrice.toFixed(2)}</td>
+                                        <td>$${discount.toFixed(2)}</td>
+                                        <td class="amount">$${total.toFixed(2)}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
                         </tbody>
                     </table>
                 </div>
