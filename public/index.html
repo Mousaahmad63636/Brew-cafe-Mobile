@@ -4,9 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2c3e50">
-    <title>لوحة مبيعات كويك تك</title>
+    <meta name="theme-color" content="#0284c7">
+    <title>نظام إدارة مطعم أبن البلد - كويك تك</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 
 <body>
@@ -14,13 +17,27 @@
         <header>
             <h1>إدارة مطعم أبن البلد</h1>
             <nav class="main-nav">
-                <button class="nav-btn active" data-section="dashboard">لوحة التحكم</button>
-                <button class="nav-btn" data-section="sales">المبيعات</button>
-                <button class="nav-btn" data-section="drawers">الأدراج</button>
-                <button class="nav-btn" data-section="suppliers">الموردين</button>
-                <button class="nav-btn" data-section="customers">العملاء</button>
-                <button class="nav-btn" data-section="inventory">المخزون</button>
-                <button class="nav-btn" data-section="restaurant">الطاولات</button>
+                <button class="nav-btn active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> لوحة التحكم
+                </button>
+                <button class="nav-btn" data-section="sales">
+                    <i class="fas fa-chart-line"></i> المبيعات
+                </button>
+                <button class="nav-btn" data-section="drawers">
+                    <i class="fas fa-cash-register"></i> الأدراج
+                </button>
+                <button class="nav-btn" data-section="suppliers">
+                    <i class="fas fa-truck"></i> الموردين
+                </button>
+                <button class="nav-btn" data-section="customers">
+                    <i class="fas fa-users"></i> العملاء
+                </button>
+                <button class="nav-btn" data-section="inventory">
+                    <i class="fas fa-boxes"></i> المخزون
+                </button>
+                <button class="nav-btn" data-section="restaurant">
+                    <i class="fas fa-utensils"></i> الطاولات
+                </button>
             </nav>
         </header>
 
@@ -46,37 +63,61 @@
         </div>
 
         <!-- Dashboard Section -->
-        <div class="section" id="dashboard-section">
+        <div class="section animate-fade-in" id="dashboard-section">
             <div class="summary-section">
                 <div class="summary-card" id="total-sales">
+                    <div class="card-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
                     <h2>إجمالي المبيعات</h2>
                     <p class="value">$0.00</p>
                 </div>
                 <div class="summary-card" id="total-expense">
+                    <div class="card-icon expense">
+                        <i class="fas fa-receipt"></i>
+                    </div>
                     <h2>إجمالي المصروفات</h2>
                     <p class="value">$0.00</p>
                 </div>
                 <div class="summary-card" id="total-profit">
+                    <div class="card-icon profit">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
                     <h2>صافي الربح</h2>
                     <p class="value">$0.00</p>
                 </div>
                 <div class="summary-card" id="total-transactions">
+                    <div class="card-icon transactions">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
                     <h2>عدد المعاملات</h2>
                     <p class="value">0</p>
                 </div>
                 <div class="summary-card" id="open-drawers">
+                    <div class="card-icon drawers">
+                        <i class="fas fa-cash-register"></i>
+                    </div>
                     <h2>الأدراج المفتوحة</h2>
                     <p class="value">0</p>
                 </div>
                 <div class="summary-card" id="pending-invoices">
+                    <div class="card-icon invoices">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
                     <h2>فواتير معلقة</h2>
                     <p class="value">0</p>
                 </div>
                 <div class="summary-card" id="customer-payments">
+                    <div class="card-icon payments">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
                     <h2>مدفوعات العملاء</h2>
                     <p class="value">$0.00</p>
                 </div>
                 <div class="summary-card" id="available-tables">
+                    <div class="card-icon tables">
+                        <i class="fas fa-chair"></i>
+                    </div>
                     <h2>طاولات متاحة</h2>
                     <p class="value">0</p>
                 </div>

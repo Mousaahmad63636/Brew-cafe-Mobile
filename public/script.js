@@ -40,9 +40,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const formattedDate = formatDate(today);
     dateInput.value = formattedDate;
     
-    // Initialize
+    // Initialize with animations
+    document.body.classList.add('animate-fade-in');
     fetchEmployees().then(() => {
         loadDashboardData(formattedDate);
+    });
+    
+    // Add animation classes to sections when they become visible
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-fade-in');
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all cards for animation
+    document.querySelectorAll('.summary-card, .data-container, .transaction-card').forEach(card => {
+        observer.observe(card);
     });
     
     // Navigation event listeners
